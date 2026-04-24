@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Domino Score</title>
+	
+	<link rel="manifest" href="manifest.json">
+	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<link rel="apple-touch-icon" href="doble6.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    table {
+      width: auto;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: #222;
+    }
+
+    th, td {
+      border: 1px solid #444;
+      padding: 6px 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #333;
+    }
+
+    tr:nth-child(even) {
+      background: #1a1a1a;
+    }
+
+    .app {
+      display: inline-block;
+    }
+
+    .controles {
+	  display: flex;
+	  justify-content: center;
+	  gap: 12px;
+	  flex-wrap: wrap;
+	  max-width: 650px;
+	  margin: 0 auto;
+}
+
+    .control {
+	  background: #1e1e1e;
+	  padding: 12px;
+	  border-radius: 12px;
+	  width: 150px;
+	  transition: 0.2s;
+	  position: relative; /* 🔥 importante */
+	  z-index: 1;
+}
+
+    .control.ganador {
+	  background: #1f7a1f;
+	  z-index: 10;
+	  transform: scale(1.05);
+	  box-shadow: 0 0 15px rgba(0,255,0,0.4);
+}
+
+    .control input {
+      width: 90%;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+    }
+
+    .control p {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    .control button {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #333;
+      color: white;
+      font-size: 16px;
+    }
+
+    .control button:hover {
+      background: #555;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>🎲 Domino Score</h2>
+<h3 id="ganador" style="color: lightgreen;"></h3>
+
+<input id="nombre" placeholder="Jugador">
+<input id="limite" type="number" placeholder="Meta (ej:100)">
+<button onclick="agregarJugador()">Agregar</button>
+<button onclick="nuevaPartida()">Nueva partida</button>
+
+<div id="jugadores"></div>
+
+<script>
+let jugadores = [];
+let limite = 0;
+let juegoTerminado = false;
+let rondas = [];
+
+// FUNCION GUARDAR DATOS
+
+function guardarDatos() {
+  localStorage.setItem("jugadores", JSON.stringify(jugadores));
+  localStorage.setItem("rondas", JSON.stringify(rondas));
+  localStorage.setItem("limite", limite);
+  localStorage.setItem("juegoTerminado", juegoTerminado);
+}
+
+// FUNCION CARGAR DATOS
+
+function cargarDatos() {
+  let j = localStorage.getItem("jugadores");
+  let r = localStorage.getItem("rondas");
+  let l = localStorage.getItem("limite");
+  let t = localStorage.getItem("juegoTerminado");
+
+  if (j) jugadores = JSON.parse(j);
+  if (r) rondas = JSON.parse(r);
+  if (l) limite = parseInt(l);
+  if (t) juegoTerminado = JSON.parse(t);
+
+  mostrar();
+}
+
+// FUNCION AGREGAR JUGADOR
+
+function agregarJugador() {
+  let nombre = document.getElementById("nombre").value;
+  let inputLimite = document.getElementById("limite").value;
+
+  if (!nombre) return;
+
+  if (jugadores.length >= 4) {
+    alert("Máximo 4 jugadores");
+    return;
+  }
+
+  if (limite === 0) {
+    limite = parseInt(inputLimite);
+    if (isNaN(limite) || limite <= 0) {
+      alert("Pon un límite válido");
+      return;
+    }
+  }
+
+  jugadores.push({nombre: nombre, puntos: 0});
+  guardarDatos();
+  document.getElementById("nombre").value = "";
+
+  mostrar();
+}
+
+// FUNCION EDITAR NOMBRE
+
+function editarNombre(index, nuevoNombre) {
+  if (!nuevoNombre) return;
+  jugadores[index].nombre = nuevoNombre;
+  guardarDatos();
+  mostrar();
+}
+
+// FUNCION SUMAR
+
+function sumar(index) {
+  if (juegoTerminado) return;
+
+  let valor = parseInt(document.getElementById("input" + index).value);
+  if (isNaN(valor) || valor <= 0) return;
+
+  nuevaRonda(index, valor);
+}
+
+// FUNCION RESTAR
+
+function restar(index) {
+  if (juegoTerminado) return;
+
+  let valor = parseInt(document.getElementById("input" + index).value);
+  if (isNaN(valor) || valor <= 0) return;
+
+  nuevaRonda(index, -valor);
+}
+
+// FUNCION NUEVA RONDA
+
+function nuevaRonda(jugadorIndex, puntos) {
+  let ronda = [];
+
+  for (let i = 0; i < jugadores.length; i++) {
+    if (i === jugadorIndex) {
+      ronda.push(puntos);
+      jugadores[i].puntos += puntos;
+    } else {
+      ronda.push(0);
+    }
+  }
+
+  rondas.push(ronda);
+  guardarDatos();
+
+  if (jugadores[jugadorIndex].puntos >= limite) {
+    juegoTerminado = true;
+    document.getElementById("ganador").innerText =
+      "🏆 Ganó " + jugadores[jugadorIndex].nombre;
+  }
+
+  mostrar();
+}
+
+// FUNCION MOSTRAR
+
+function mostrar() {
+  
+	let contenedor = document.getElementById("jugadores");
+
+  if (jugadores.length === 0) {
+    contenedor.innerHTML = "<p>No hay jugadores aún</p>";
+    return;
+  }
+
+  let encabezado = "<tr><th>Ronda</th>";
+  jugadores.forEach(j => {
+    encabezado += `<th>${j.nombre}</th>`;
+  });
+  encabezado += "</tr>";
+
+  let filas = "";
+
+  if (rondas.length === 0) {
+    filas = `<tr><td colspan="${jugadores.length + 1}">Sin rondas aún</td></tr>`;
+  } else {
+    rondas.forEach((r, index) => {
+      filas += `<tr><td>R${index + 1}</td>`;
+
+      for (let i = 0; i < jugadores.length; i++) {
+        filas += `<td>${r[i] || 0}</td>`;
+      }
+
+      filas += "</tr>";
+    });
+  }
+
+  let maxPuntos = Math.max(...jugadores.map(j => j.puntos));
+  let controles = jugadores.map((j, i) => {
+  let esGanador = j.puntos >= limite;
+  let esLider = j.puntos === maxPuntos && maxPuntos > 0;
+
+  return `
+    <div class="control ${esGanador ? 'ganador' : ''}">
+      
+      ${esLider && !esGanador ? `<div class="lider">🥇 LÍDER</div>` : ''}
+      ${esGanador ? `<div class="lider">🏆 GANADOR</div>` : ''}
+
+      <input value="${j.nombre}" onchange="editarNombre(${i}, this.value)">
+      <p>${j.puntos} pts</p>
+      <input id="input${i}" type="number" placeholder="Puntos">
+      <button onclick="sumar(${i})">➕</button>
+      <button onclick="restar(${i})">➖</button>
+    </div>
+  `;
+}).join("");
+
+  contenedor.innerHTML = `
+    <h3>Meta: ${limite}</h3>
+
+    <div class="app">
+      <div class="controles">
+        ${controles}
+      </div>
+
+      <table>
+        ${encabezado}
+        ${filas}
+      </table>
+    </div>
+  `;
+}  
+
+//FUNCION NUEVA PARTIDA
+
+function nuevaPartida() {
+  localStorage.clear();
+  jugadores = [];
+  rondas = [];
+  limite = 0;
+  juegoTerminado = false;
+  document.getElementById("ganador").innerText = "";
+  mostrar();
+}
+
+cargarDatos();
+</script>
+
+</body>
+</html>
