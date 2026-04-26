@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Domino Score</title>
-	
-	<link rel="manifest" href="manifest.json">
-	
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black">
-	<link rel="apple-touch-icon" href="doble6.png">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domino Score</title>
+
+  <link rel="manifest" href="manifest.json">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="apple-touch-icon" href="doble6.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
@@ -44,30 +44,30 @@
     }
 
     .controles {
-	  display: flex;
-	  justify-content: center;
-	  gap: 12px;
-	  flex-wrap: wrap;
-	  max-width: 650px;
-	  margin: 0 auto;
-}
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      max-width: 650px;
+      margin: 0 auto;
+    }
 
     .control {
-	  background: #1e1e1e;
-	  padding: 12px;
-	  border-radius: 12px;
-	  width: 150px;
-	  transition: 0.2s;
-	  position: relative; /* 🔥 importante */
-	  z-index: 1;
-}
+      background: #1e1e1e;
+      padding: 12px;
+      border-radius: 12px;
+      width: 150px;
+      transition: 0.2s;
+      position: relative;
+      z-index: 1;
+    }
 
     .control.ganador {
-	  background: #1f7a1f;
-	  z-index: 10;
-	  transform: scale(1.05);
-	  box-shadow: 0 0 15px rgba(0,255,0,0.4);
-}
+      background: #1f7a1f;
+      z-index: 10;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0,255,0,0.4);
+    }
 
     .control input {
       width: 90%;
@@ -99,13 +99,17 @@
 
 <body>
 
-<h2>🎲 Domino Score</h2>
+<h2>
+  <img src="doble6.png" alt="Domino" style="width:30px; vertical-align:middle; margin-right:8px;">
+  Domino Score
+</h2>
 <h3 id="ganador" style="color: lightgreen;"></h3>
 
 <input id="nombre" placeholder="Jugador">
 <input id="limite" type="number" placeholder="Meta (ej:100)">
 <button onclick="agregarJugador()">Agregar</button>
 <button onclick="nuevaPartida()">Nueva partida</button>
+<button onclick="borrarHistorial()">Borrar historial</button>
 
 <div id="jugadores"></div>
 
@@ -114,8 +118,9 @@ let jugadores = [];
 let limite = 0;
 let juegoTerminado = false;
 let rondas = [];
+let historial = [];
 
-// FUNCION GUARDAR DATOS
+// ---------------- GUARDAR ----------------
 
 function guardarDatos() {
   localStorage.setItem("jugadores", JSON.stringify(jugadores));
@@ -124,23 +129,29 @@ function guardarDatos() {
   localStorage.setItem("juegoTerminado", juegoTerminado);
 }
 
-// FUNCION CARGAR DATOS
+function guardarHistorial() {
+  localStorage.setItem("historial", JSON.stringify(historial));
+}
+
+// ---------------- CARGAR ----------------
 
 function cargarDatos() {
   let j = localStorage.getItem("jugadores");
   let r = localStorage.getItem("rondas");
   let l = localStorage.getItem("limite");
   let t = localStorage.getItem("juegoTerminado");
+  let h = localStorage.getItem("historial");
 
   if (j) jugadores = JSON.parse(j);
   if (r) rondas = JSON.parse(r);
   if (l) limite = parseInt(l);
   if (t) juegoTerminado = JSON.parse(t);
+  if (h) historial = JSON.parse(h);
 
   mostrar();
 }
 
-// FUNCION AGREGAR JUGADOR
+// ---------------- JUGADORES ----------------
 
 function agregarJugador() {
   let nombre = document.getElementById("nombre").value;
@@ -163,12 +174,10 @@ function agregarJugador() {
 
   jugadores.push({nombre: nombre, puntos: 0});
   guardarDatos();
-  document.getElementById("nombre").value = "";
 
+  document.getElementById("nombre").value = "";
   mostrar();
 }
-
-// FUNCION EDITAR NOMBRE
 
 function editarNombre(index, nuevoNombre) {
   if (!nuevoNombre) return;
@@ -177,7 +186,7 @@ function editarNombre(index, nuevoNombre) {
   mostrar();
 }
 
-// FUNCION SUMAR
+// ---------------- PUNTOS ----------------
 
 function sumar(index) {
   if (juegoTerminado) return;
@@ -188,8 +197,6 @@ function sumar(index) {
   nuevaRonda(index, valor);
 }
 
-// FUNCION RESTAR
-
 function restar(index) {
   if (juegoTerminado) return;
 
@@ -199,7 +206,7 @@ function restar(index) {
   nuevaRonda(index, -valor);
 }
 
-// FUNCION NUEVA RONDA
+// ---------------- RONDAS ----------------
 
 function nuevaRonda(jugadorIndex, puntos) {
   let ronda = [];
@@ -218,6 +225,15 @@ function nuevaRonda(jugadorIndex, puntos) {
 
   if (jugadores[jugadorIndex].puntos >= limite) {
     juegoTerminado = true;
+
+    let partida = {
+      ganador: jugadores[jugadorIndex].nombre,
+      fecha: new Date().toLocaleString()
+    };
+
+    historial.push(partida);
+    guardarHistorial();
+
     document.getElementById("ganador").innerText =
       "🏆 Ganó " + jugadores[jugadorIndex].nombre;
   }
@@ -225,11 +241,10 @@ function nuevaRonda(jugadorIndex, puntos) {
   mostrar();
 }
 
-// FUNCION MOSTRAR
+// ---------------- MOSTRAR ----------------
 
 function mostrar() {
-  
-	let contenedor = document.getElementById("jugadores");
+  let contenedor = document.getElementById("jugadores");
 
   if (jugadores.length === 0) {
     contenedor.innerHTML = "<p>No hay jugadores aún</p>";
@@ -249,36 +264,79 @@ function mostrar() {
   } else {
     rondas.forEach((r, index) => {
       filas += `<tr><td>R${index + 1}</td>`;
-
-      for (let i = 0; i < jugadores.length; i++) {
-        filas += `<td>${r[i] || 0}</td>`;
-      }
-
+      r.forEach(p => {
+        filas += `<td>${p}</td>`;
+      });
       filas += "</tr>";
     });
   }
 
   let maxPuntos = Math.max(...jugadores.map(j => j.puntos));
+
   let controles = jugadores.map((j, i) => {
-  let esGanador = j.puntos >= limite;
-  let esLider = j.puntos === maxPuntos && maxPuntos > 0;
+    let esGanador = j.puntos >= limite;
+    let esLider = j.puntos === maxPuntos && maxPuntos > 0;
 
-  return `
-    <div class="control ${esGanador ? 'ganador' : ''}">
-      
-      ${esLider && !esGanador ? `<div class="lider">🥇 LÍDER</div>` : ''}
-      ${esGanador ? `<div class="lider">🏆 GANADOR</div>` : ''}
+    return `
+      <div class="control ${esGanador ? 'ganador' : ''}">
+        ${esLider && !esGanador ? `<div>🥇 LÍDER</div>` : ''}
+        ${esGanador ? `<div>🏆 GANADOR</div>` : ''}
 
-      <input value="${j.nombre}" onchange="editarNombre(${i}, this.value)">
-      <p>${j.puntos} pts</p>
-      <input id="input${i}" type="number" placeholder="Puntos">
-      <button onclick="sumar(${i})">➕</button>
-      <button onclick="restar(${i})">➖</button>
-    </div>
-  `;
-}).join("");
+        <input value="${j.nombre}" onchange="editarNombre(${i}, this.value)">
+        <p>${j.puntos} pts</p>
 
-  contenedor.innerHTML = `
+        <input id="input${i}" type="number" placeholder="Puntos">
+
+        <button onclick="sumar(${i})">➕</button>
+        <button onclick="restar(${i})">➖</button>
+      </div>
+    `;
+  }).join("");
+
+  let historialHTML = "<h3>Historial</h3>";
+  
+  let stats = {};
+
+historial.forEach(p => {
+  if (!stats[p.ganador]) {
+    stats[p.ganador] = 0;
+  }
+  stats[p.ganador]++;
+});
+
+let ranking = Object.entries(stats)
+  .sort((a, b) => b[1] - a[1]);
+
+let statsHTML = "<h3>🏆 Ranking</h3>";
+
+if (ranking.length === 0) {
+  statsHTML += "<p>No hay datos</p>";
+} else {
+  ranking.forEach((item, index) => {
+    let medal = "";
+    if (index === 0) medal = "🥇";
+    else if (index === 1) medal = "🥈";
+    else if (index === 2) medal = "🥉";
+
+    statsHTML += `<p>${medal} ${item[0]} - ${item[1]} wins</p>`;
+  });
+}
+
+  if (historial.length === 0) {
+    historialHTML += "<p>No hay partidas aún</p>";
+  } else {
+    historial.forEach(p => {
+      historialHTML += `
+        <div style="background:#222; margin:5px; padding:5px; border-radius:8px;">
+          🏆 ${p.ganador}<br>
+          ${p.fecha}
+        </div>
+      `;
+    });
+  }
+
+  
+contenedor.innerHTML = `
     <h3>Meta: ${limite}</h3>
 
     <div class="app">
@@ -290,21 +348,43 @@ function mostrar() {
         ${encabezado}
         ${filas}
       </table>
+
+      ${historialHTML}
+	  ${statsHTML}
     </div>
   `;
-}  
+}
 
-//FUNCION NUEVA PARTIDA
+// ---------------- NUEVA PARTIDA ----------------
 
 function nuevaPartida() {
-  localStorage.clear();
+  localStorage.removeItem("jugadores");
+  localStorage.removeItem("rondas");
+  localStorage.removeItem("limite");
+  localStorage.removeItem("juegoTerminado");
+
   jugadores = [];
   rondas = [];
   limite = 0;
   juegoTerminado = false;
+
   document.getElementById("ganador").innerText = "";
+
   mostrar();
 }
+
+// ---------------- BORRAR HISTORIAL ----------------
+
+function borrarHistorial() {
+  if (!confirm("¿Borrar todo el historial?")) return;
+
+  historial = [];
+  localStorage.removeItem("historial");
+
+  mostrar();
+}
+
+// ---------------- INICIO ----------------
 
 cargarDatos();
 </script>
