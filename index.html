@@ -94,6 +94,54 @@
     .control button:hover {
       background: #555;
     }
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.control {
+  animation: aparecer 0.3s ease;
+}
+.flash {
+  animation: flash 0.3s;
+}
+
+@keyframes flash {
+  0% { background: #444; }
+  100% { background: transparent; }
+}
+let card = document.querySelectorAll(".control")[index];
+card.classList.add("flash");
+
+setTimeout(() => {
+  card.classList.remove("flash");
+}, 300);	
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide {
+  animation: slideIn 0.3s ease;
+}
+
+tr:last-child {
+  animation: slideIn 0.3s ease;
+}	
   </style>
 </head>
 
@@ -119,6 +167,7 @@ let limite = 0;
 let juegoTerminado = false;
 let rondas = [];
 let historial = [];
+let activarSlide = false;
 
 // ---------------- GUARDAR ----------------
 
@@ -194,6 +243,14 @@ function sumar(index) {
   let valor = parseInt(document.getElementById("input" + index).value);
   if (isNaN(valor) || valor <= 0) return;
 
+  // 👇 ANIMACIÓN
+  let card = document.querySelectorAll(".control")[index];
+  card.classList.add("flash");
+
+  setTimeout(() => {
+    card.classList.remove("flash");
+  }, 300);
+
   nuevaRonda(index, valor);
 }
 
@@ -202,6 +259,14 @@ function restar(index) {
 
   let valor = parseInt(document.getElementById("input" + index).value);
   if (isNaN(valor) || valor <= 0) return;
+
+  // 👇 ANIMACIÓN
+  let card = document.querySelectorAll(".control")[index];
+  card.classList.add("flash");
+
+  setTimeout(() => {
+    card.classList.remove("flash");
+  }, 300);
 
   nuevaRonda(index, -valor);
 }
@@ -237,6 +302,8 @@ function nuevaRonda(jugadorIndex, puntos) {
     document.getElementById("ganador").innerText =
       "🏆 Ganó " + jugadores[jugadorIndex].nombre;
   }
+  
+  activarSlide = true;
 
   mostrar();
 }
@@ -245,6 +312,8 @@ function nuevaRonda(jugadorIndex, puntos) {
 
 function mostrar() {
   let contenedor = document.getElementById("jugadores");
+  let claseSlide = activarSlide ? "slide" : "";
+  activarSlide = false;
 
   if (jugadores.length === 0) {
     contenedor.innerHTML = "<p>No hay jugadores aún</p>";
@@ -340,14 +409,17 @@ contenedor.innerHTML = `
     <h3>Meta: ${limite}</h3>
 
     <div class="app">
-      <div class="controles">
+    <div class="controles">
         ${controles}
-      </div>
+    </div>
 
-      <table>
-        ${encabezado}
-        ${filas}
-      </table>
+	<div id="tablaRondas" class="${claseSlide}">
+	<table>
+	
+    ${encabezado}
+    ${filas}
+	</table>
+	</div>
 
       ${historialHTML}
 	  ${statsHTML}
