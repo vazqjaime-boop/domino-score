@@ -2,15 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Domino Score Pro v2.2</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="manifest" href="manifest.json">
-
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="Domino Score">
-	<link rel="apple-touch-icon" href="icon-192.png">
-	
+    <title>Domino Score Pro v2.3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <style>
         :root {
             --bg-dark: #111;
@@ -20,20 +17,38 @@
             --text-main: #eee;
             --border-color: #444;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 15px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 15px; }
         .container { max-width: 900px; margin: 0 auto; }
+        
+        /* Acciones y Configuración */
         .actions-bar { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
-        .player-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; }
-        .player-card.is-winner { background: var(--accent-green); border-color: #4ade80; }
-        input { padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; }
-        button { cursor: pointer; padding: 10px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; font-size: 0.9rem; }
+        
+        /* Tarjetas de Jugadores */
+        .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+        .player-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); transition: transform 0.2s; }
+        .player-card.is-winner { background: var(--accent-green); border-color: #4ade80; transform: scale(1.02); }
+        
+        /* Inputs Optimizados para Móvil */
+        input { 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            background: #2a2a2a; 
+            color: white; 
+            text-align: center; 
+            font-size: 16px; /* Evita zoom automático en iOS */
+        }
+        
+        button { cursor: pointer; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; }
         .btn-primary { background: var(--accent-blue); }
         .btn-success { background: var(--accent-green); }
-        .btn-warning { background: #856404; color: #fff; }
+        .btn-warning { background: #856404; }
         .btn-danger { background: #721c24; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; }
-        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: center; }
+        
+        /* Tabla */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: center; }
+        
         .flash { animation: flashEffect 0.4s ease-out; }
         @keyframes flashEffect { 0% { background-color: #555; } 100% { background-color: var(--bg-card); } }
     </style>
@@ -42,24 +57,25 @@
 
 <div class="container">
     <header style="margin-bottom: 25px;">
-    <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px;">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-            <line x1="4" y1="12" x2="20" y2="12"></line>
-            <circle cx="12" cy="7" r="1" fill="#4ade80"></circle>
-            <circle cx="12" cy="17" r="1" fill="#4ade80"></circle>
-        </svg>
-        <span style="letter-spacing: 1px;">DOMINO SCORE PRO</span>
-    </h2>
-</header>
+        <h2 style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <circle cx="12" cy="7" r="1" fill="#4ade80"></circle>
+                <circle cx="12" cy="17" r="1" fill="#4ade80"></circle>
+            </svg>
+            <span>DOMINO SCORE PRO</span>
+        </h2>
+    </header>
     
     <nav class="actions-bar">
-        <input id="in-nombre" placeholder="Nombre Jugador">
-        <input id="in-limite" type="number" placeholder="Meta">
-        <button class="btn-primary" onclick="App.UI.addPlayer()">+ Añadir</button>
-        <button class="btn-warning" onclick="App.Engine.softReset()">🔄 Reiniciar Puntos</button>
-        <button class="btn-danger" onclick="App.Engine.hardReset()">🗑️ Todo Nuevo</button>
-        <button onclick="App.Engine.exportData()">📥 Backup</button>
+        <input id="in-nombre" type="text" placeholder="Nombre">
+        <input id="in-limite" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Meta">
+        
+        <button class="btn-primary" onclick="App.UI.addPlayer()">Añadir</button>
+        <button class="btn-warning" onclick="App.Engine.softReset()">Reiniciar Puntos</button>
+        <button class="btn-danger" onclick="App.Engine.hardReset()">Todo Nuevo</button>
+        <button onclick="App.Engine.exportData()">Backup</button>
     </nav>
 
     <div id="game-board"></div>
@@ -67,16 +83,15 @@
 
 <script>
 const App = {
-    // Estado dividido para persistencia de configuración
     State: {
-        config: { players: [], limit: 0 }, // Persistente entre partidas
-        game: { rounds: [], isGameOver: false }, // Volátil por partida
+        config: { players: [], limit: 0 },
+        game: { rounds: [], isGameOver: false },
         history: JSON.parse(localStorage.getItem('domino_history') || '[]')
     },
 
     Engine: {
         init() {
-            const saved = localStorage.getItem('domino_v2_2');
+            const saved = localStorage.getItem('domino_v2_3');
             if (saved) {
                 const data = JSON.parse(saved);
                 App.State.config = data.config || { players: [], limit: 0 };
@@ -86,15 +101,19 @@ const App = {
         },
 
         save() {
-            localStorage.setItem('domino_v2_2', JSON.stringify({
+            localStorage.setItem('domino_v2_3', JSON.stringify({
                 config: App.State.config,
                 game: App.State.game
             }));
             localStorage.setItem('domino_history', JSON.stringify(App.State.history));
         },
 
-        addPoints(playerIdx, points) {
+        addPoints(playerIdx, inputId) {
+            const el = document.getElementById(inputId);
+            const points = parseInt(el.value, 10);
+
             if (App.State.game.isGameOver || isNaN(points) || points === 0) return;
+            if (Math.abs(points) > 500) return alert("Puntaje inválido.");
             
             const newRound = new Array(App.State.config.players.length).fill(0);
             newRound[playerIdx] = points;
@@ -108,13 +127,14 @@ const App = {
                     date: new Date().toLocaleString()
                 });
             }
+            
+            el.value = ""; // Limpiar input tras añadir
             this.save();
             App.UI.render(playerIdx);
         },
 
-        // SUGERENCIA 3: Reiniciar manteniendo jugadores
         softReset() {
-            if (!confirm("¿Reiniciar puntos? Se mantendrán los jugadores y la meta.")) return;
+            if (!confirm("¿Reiniciar puntos manteniendo jugadores?")) return;
             App.State.config.players.forEach(p => p.score = 0);
             App.State.game = { rounds: [], isGameOver: false };
             this.save();
@@ -122,7 +142,7 @@ const App = {
         },
 
         hardReset() {
-            if (!confirm("¿Borrar todo y empezar de cero?")) return;
+            if (!confirm("¿Borrar todo?")) return;
             App.State.config = { players: [], limit: 0 };
             App.State.game = { rounds: [], isGameOver: false };
             this.save();
@@ -133,7 +153,7 @@ const App = {
             const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `domino_pro_backup.json`;
+            a.download = `domino_backup.json`;
             a.click();
         },
 
@@ -155,7 +175,7 @@ const App = {
             if (App.State.config.players.length >= 4) return alert("Máximo 4 jugadores.");
             
             if (App.State.config.limit === 0) {
-                if (isNaN(limit) || limit <= 0) return alert("Meta inválida.");
+                if (isNaN(limit) || limit <= 0) return alert("Define una meta.");
                 App.State.config.limit = limit;
             }
 
@@ -168,7 +188,7 @@ const App = {
         render(lastUpdatedIdx = null) {
             const board = document.getElementById('game-board');
             if (App.State.config.players.length === 0) {
-                board.innerHTML = "<p style='margin-top:20px; opacity:0.5;'>Sin jugadores activos.</p>";
+                board.innerHTML = "<p style='margin-top:40px; opacity:0.5;'>Añade jugadores para comenzar.</p>";
                 return;
             }
 
@@ -185,35 +205,29 @@ const App = {
                             ${win ? '🏆 GANADOR' : (lead ? '🥇 LÍDER' : '')}
                         </div>
                         <div style="font-weight:bold; margin:5px 0">${escape(p.name)}</div>
-                        <div style="font-size:1.8rem; margin:5px 0">${p.score}</div>
-                        <input type="number" id="pts-${i}" placeholder="Puntos" style="width:70px; margin-bottom:10px">
+                        <div style="font-size:2rem; margin:5px 0">${p.score}</div>
+                        <input type="number" id="pts-${i}" inputmode="numeric" pattern="[0-9]*" placeholder="Pts" style="width:80%; margin-bottom:10px">
                         <div style="display:flex; gap:5px; justify-content:center">
-                            <button class="btn-success" onclick="App.Engine.addPoints(${i}, parseInt(document.getElementById('pts-${i}').value))">➕</button>
-                            <button onclick="App.Engine.addPoints(${i}, -parseInt(document.getElementById('pts-${i}').value))">➖</button>
+                            <button class="btn-success" onclick="App.Engine.addPoints(${i}, 'pts-${i}')">➕</button>
+                            <button onclick="App.Engine.addPoints(${i}, 'pts-${i}', true)">➖</button>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            const tableHTML = `
+            board.innerHTML = `
+                <h3 style="margin:15px 0">Meta: ${App.State.config.limit}</h3>
+                <div class="controles">${cards}</div>
                 <div style="overflow-x:auto">
                     <table>
                         <thead><tr><th>Ronda</th>${App.State.config.players.map(p => `<th>${escape(p.name)}</th>`).join('')}</tr></thead>
                         <tbody>
-                            ${App.State.game.rounds.map((r, ri) => `
-                                <tr><td>R${ri+1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>
-                            `).join('')}
+                            ${App.State.game.rounds.map((r, ri) => `<tr><td>R${ri+1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>`).join('')}
                         </tbody>
                     </table>
                 </div>
-            `;
-
-            board.innerHTML = `
-                <h3 style="margin:15px 0">Meta: ${App.State.config.limit} puntos</h3>
-                <div class="controles">${cards}</div>
-                ${tableHTML}
                 ${ranking.length > 0 ? `<div style="margin-top:20px; background:#222; padding:15px; border-radius:10px">
-                    <h4>🏆 Ránking Histórico</h4>
+                    <h4>🏆 Ranking Histórico</h4>
                     <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap">
                         ${ranking.map(r => `<div><strong>${escape(r[0])}</strong>: ${r[1]} win</div>`).join('')}
                     </div>
