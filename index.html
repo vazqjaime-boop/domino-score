@@ -1,465 +1,212 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Domino Score</title>
-
-  <link rel="manifest" href="manifest.json">
-
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <link rel="apple-touch-icon" href="ficha.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: white;
-      text-align: center;
-    }
-
-    table {
-      width: auto;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: #222;
-    }
-
-    th, td {
-      border: 1px solid #444;
-      padding: 6px 10px;
-      text-align: center;
-    }
-
-    th {
-      background: #333;
-    }
-
-    tr:nth-child(even) {
-      background: #1a1a1a;
-    }
-
-    .app {
-      display: inline-block;
-    }
-
-    .controles {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      max-width: 650px;
-      margin: 0 auto;
-    }
-
-    .control {
-      background: #1e1e1e;
-      padding: 12px;
-      border-radius: 12px;
-      width: 150px;
-      transition: 0.2s;
-      position: relative;
-      z-index: 1;
-    }
-
-    .control.ganador {
-      background: #1f7a1f;
-      z-index: 10;
-      transform: scale(1.05);
-      box-shadow: 0 0 15px rgba(0,255,0,0.4);
-    }
-
-    .control input {
-      width: 90%;
-      padding: 6px;
-      border-radius: 6px;
-      border: none;
-      text-align: center;
-    }
-
-    .control p {
-      margin: 10px 0;
-      font-size: 18px;
-    }
-
-    .control button {
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: none;
-      background: #333;
-      color: white;
-      font-size: 16px;
-    }
-
-    .control button:hover {
-      background: #555;
-    }
-
-@keyframes aparecer {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.control {
-  animation: aparecer 0.3s ease;
-}
-.flash {
-  animation: flash 0.3s;
-}
-
-@keyframes flash {
-  0% { background: #444; }
-  100% { background: transparent; }
-}
-let card = document.querySelectorAll(".control")[index];
-card.classList.add("flash");
-
-setTimeout(() => {
-  card.classList.remove("flash");
-}, 300);	
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.slide {
-  animation: slideIn 0.3s ease;
-}
-
-tr:last-child {
-  animation: slideIn 0.3s ease;
-}	
-  </style>
+    <meta charset="UTF-8">
+    <title>Domino Score Pro v2.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-dark: #111;
+            --bg-card: #1e1e1e;
+            --accent-blue: #0066cc;
+            --accent-green: #1f7a1f;
+            --text-main: #eee;
+            --border-color: #444;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 15px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .actions-bar { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 20px 0; }
+        .player-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; }
+        .player-card.is-winner { background: var(--accent-green); border-color: #4ade80; }
+        input { padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; }
+        button { cursor: pointer; padding: 10px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; font-size: 0.9rem; }
+        .btn-primary { background: var(--accent-blue); }
+        .btn-success { background: var(--accent-green); }
+        .btn-warning { background: #856404; color: #fff; }
+        .btn-danger { background: #721c24; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: center; }
+        .flash { animation: flashEffect 0.4s ease-out; }
+        @keyframes flashEffect { 0% { background-color: #555; } 100% { background-color: var(--bg-card); } }
+    </style>
 </head>
-
 <body>
 
-<h2>
-  <img src="ficha.png" alt="Domino" style="width:30px; vertical-align:middle; margin-right:8px;">
-  Domino Score
-</h2>
-<h3 id="ganador" style="color: lightgreen;"></h3>
+<div class="container">
+    <h2>🀄 Domino Score Pro</h2>
+    
+    <nav class="actions-bar">
+        <input id="in-nombre" placeholder="Nombre Jugador">
+        <input id="in-limite" type="number" placeholder="Meta">
+        <button class="btn-primary" onclick="App.UI.addPlayer()">+ Añadir</button>
+        <button class="btn-warning" onclick="App.Engine.softReset()">🔄 Reiniciar Puntos</button>
+        <button class="btn-danger" onclick="App.Engine.hardReset()">🗑️ Todo Nuevo</button>
+        <button onclick="App.Engine.exportData()">📥 Backup</button>
+    </nav>
 
-<input id="nombre" placeholder="Jugador">
-<input id="limite" type="number" placeholder="Meta (ej:100)">
-<button onclick="agregarJugador()">Agregar</button>
-<button onclick="nuevaPartida()">Nueva partida</button>
-<button onclick="borrarHistorial()">Borrar historial</button>
-
-<div id="jugadores"></div>
+    <div id="game-board"></div>
+</div>
 
 <script>
-let jugadores = [];
-let limite = 0;
-let juegoTerminado = false;
-let rondas = [];
-let historial = [];
-let activarSlide = false;
+const App = {
+    // Estado dividido para persistencia de configuración
+    State: {
+        config: { players: [], limit: 0 }, // Persistente entre partidas
+        game: { rounds: [], isGameOver: false }, // Volátil por partida
+        history: JSON.parse(localStorage.getItem('domino_history') || '[]')
+    },
 
-// ---------------- GUARDAR ----------------
+    Engine: {
+        init() {
+            const saved = localStorage.getItem('domino_v2_2');
+            if (saved) {
+                const data = JSON.parse(saved);
+                App.State.config = data.config || { players: [], limit: 0 };
+                App.State.game = data.game || { rounds: [], isGameOver: false };
+            }
+            App.UI.render();
+        },
 
-function guardarDatos() {
-  localStorage.setItem("jugadores", JSON.stringify(jugadores));
-  localStorage.setItem("rondas", JSON.stringify(rondas));
-  localStorage.setItem("limite", limite);
-  localStorage.setItem("juegoTerminado", juegoTerminado);
-}
+        save() {
+            localStorage.setItem('domino_v2_2', JSON.stringify({
+                config: App.State.config,
+                game: App.State.game
+            }));
+            localStorage.setItem('domino_history', JSON.stringify(App.State.history));
+        },
 
-function guardarHistorial() {
-  localStorage.setItem("historial", JSON.stringify(historial));
-}
+        addPoints(playerIdx, points) {
+            if (App.State.game.isGameOver || isNaN(points) || points === 0) return;
+            
+            const newRound = new Array(App.State.config.players.length).fill(0);
+            newRound[playerIdx] = points;
+            App.State.game.rounds.push(newRound);
+            App.State.config.players[playerIdx].score += points;
 
-// ---------------- CARGAR ----------------
+            if (App.State.config.players[playerIdx].score >= App.State.config.limit) {
+                App.State.game.isGameOver = true;
+                App.State.history.unshift({
+                    winner: App.State.config.players[playerIdx].name,
+                    date: new Date().toLocaleString()
+                });
+            }
+            this.save();
+            App.UI.render(playerIdx);
+        },
 
-function cargarDatos() {
-  let j = localStorage.getItem("jugadores");
-  let r = localStorage.getItem("rondas");
-  let l = localStorage.getItem("limite");
-  let t = localStorage.getItem("juegoTerminado");
-  let h = localStorage.getItem("historial");
+        // SUGERENCIA 3: Reiniciar manteniendo jugadores
+        softReset() {
+            if (!confirm("¿Reiniciar puntos? Se mantendrán los jugadores y la meta.")) return;
+            App.State.config.players.forEach(p => p.score = 0);
+            App.State.game = { rounds: [], isGameOver: false };
+            this.save();
+            App.UI.render();
+        },
 
-  if (j) jugadores = JSON.parse(j);
-  if (r) rondas = JSON.parse(r);
-  if (l) limite = parseInt(l);
-  if (t) juegoTerminado = JSON.parse(t);
-  if (h) historial = JSON.parse(h);
+        hardReset() {
+            if (!confirm("¿Borrar todo y empezar de cero?")) return;
+            App.State.config = { players: [], limit: 0 };
+            App.State.game = { rounds: [], isGameOver: false };
+            this.save();
+            App.UI.render();
+        },
 
-  mostrar();
-}
+        exportData() {
+            const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `domino_pro_backup.json`;
+            a.click();
+        },
 
-// ---------------- JUGADORES ----------------
+        getRanking() {
+            const stats = {};
+            App.State.history.forEach(h => { stats[h.winner] = (stats[h.winner] || 0) + 1; });
+            return Object.entries(stats).sort((a, b) => b[1] - a[1]);
+        }
+    },
 
-function agregarJugador() {
-  let nombre = document.getElementById("nombre").value;
-  let inputLimite = document.getElementById("limite").value;
+    UI: {
+        addPlayer() {
+            const nIn = document.getElementById('in-nombre');
+            const lIn = document.getElementById('in-limite');
+            const name = nIn.value.trim();
+            const limit = parseInt(lIn.value, 10);
 
-  if (!nombre) return;
+            if (!name) return;
+            if (App.State.config.players.length >= 4) return alert("Máximo 4 jugadores.");
+            
+            if (App.State.config.limit === 0) {
+                if (isNaN(limit) || limit <= 0) return alert("Meta inválida.");
+                App.State.config.limit = limit;
+            }
 
-  if (jugadores.length >= 4) {
-    alert("Máximo 4 jugadores");
-    return;
-  }
+            App.State.config.players.push({ name, score: 0 });
+            nIn.value = "";
+            App.Engine.save();
+            this.render();
+        },
 
-  if (limite === 0) {
-    limite = parseInt(inputLimite);
-    if (isNaN(limite) || limite <= 0) {
-      alert("Pon un límite válido");
-      return;
+        render(lastUpdatedIdx = null) {
+            const board = document.getElementById('game-board');
+            if (App.State.config.players.length === 0) {
+                board.innerHTML = "<p style='margin-top:20px; opacity:0.5;'>Sin jugadores activos.</p>";
+                return;
+            }
+
+            const escape = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+            const maxScore = Math.max(...App.State.config.players.map(p => p.score));
+            const ranking = App.Engine.getRanking();
+
+            const cards = App.State.config.players.map((p, i) => {
+                const win = p.score >= App.State.config.limit;
+                const lead = p.score === maxScore && maxScore > 0 && !win;
+                return `
+                    <div class="player-card ${win ? 'is-winner' : ''} ${lastUpdatedIdx === i ? 'flash' : ''}">
+                        <div style="font-size:0.7rem; height:12px; font-weight:bold; color:#4ade80">
+                            ${win ? '🏆 GANADOR' : (lead ? '🥇 LÍDER' : '')}
+                        </div>
+                        <div style="font-weight:bold; margin:5px 0">${escape(p.name)}</div>
+                        <div style="font-size:1.8rem; margin:5px 0">${p.score}</div>
+                        <input type="number" id="pts-${i}" placeholder="Puntos" style="width:70px; margin-bottom:10px">
+                        <div style="display:flex; gap:5px; justify-content:center">
+                            <button class="btn-success" onclick="App.Engine.addPoints(${i}, parseInt(document.getElementById('pts-${i}').value))">➕</button>
+                            <button onclick="App.Engine.addPoints(${i}, -parseInt(document.getElementById('pts-${i}').value))">➖</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const tableHTML = `
+                <div style="overflow-x:auto">
+                    <table>
+                        <thead><tr><th>Ronda</th>${App.State.config.players.map(p => `<th>${escape(p.name)}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${App.State.game.rounds.map((r, ri) => `
+                                <tr><td>R${ri+1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            board.innerHTML = `
+                <h3 style="margin:15px 0">Meta: ${App.State.config.limit} puntos</h3>
+                <div class="controles">${cards}</div>
+                ${tableHTML}
+                ${ranking.length > 0 ? `<div style="margin-top:20px; background:#222; padding:15px; border-radius:10px">
+                    <h4>🏆 Ránking Histórico</h4>
+                    <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap">
+                        ${ranking.map(r => `<div><strong>${escape(r[0])}</strong>: ${r[1]} win</div>`).join('')}
+                    </div>
+                </div>` : ''}
+            `;
+        }
     }
-  }
+};
 
-  jugadores.push({nombre: nombre, puntos: 0});
-  guardarDatos();
-
-  document.getElementById("nombre").value = "";
-  mostrar();
-}
-
-function editarNombre(index, nuevoNombre) {
-  if (!nuevoNombre) return;
-  jugadores[index].nombre = nuevoNombre;
-  guardarDatos();
-  mostrar();
-}
-
-// ---------------- PUNTOS ----------------
-
-function sumar(index) {
-  if (juegoTerminado) return;
-
-  let valor = parseInt(document.getElementById("input" + index).value);
-  if (isNaN(valor) || valor <= 0) return;
-
-  // 👇 ANIMACIÓN
-  let card = document.querySelectorAll(".control")[index];
-  card.classList.add("flash");
-
-  setTimeout(() => {
-    card.classList.remove("flash");
-  }, 300);
-
-  nuevaRonda(index, valor);
-}
-
-function restar(index) {
-  if (juegoTerminado) return;
-
-  let valor = parseInt(document.getElementById("input" + index).value);
-  if (isNaN(valor) || valor <= 0) return;
-
-  // 👇 ANIMACIÓN
-  let card = document.querySelectorAll(".control")[index];
-  card.classList.add("flash");
-
-  setTimeout(() => {
-    card.classList.remove("flash");
-  }, 300);
-
-  nuevaRonda(index, -valor);
-}
-
-// ---------------- RONDAS ----------------
-
-function nuevaRonda(jugadorIndex, puntos) {
-  let ronda = [];
-
-  for (let i = 0; i < jugadores.length; i++) {
-    if (i === jugadorIndex) {
-      ronda.push(puntos);
-      jugadores[i].puntos += puntos;
-    } else {
-      ronda.push(0);
-    }
-  }
-
-  rondas.push(ronda);
-  guardarDatos();
-
-  if (jugadores[jugadorIndex].puntos >= limite) {
-    juegoTerminado = true;
-
-    let partida = {
-      ganador: jugadores[jugadorIndex].nombre,
-      fecha: new Date().toLocaleString()
-    };
-
-    historial.push(partida);
-    guardarHistorial();
-
-    document.getElementById("ganador").innerText =
-      "🏆 Ganó " + jugadores[jugadorIndex].nombre;
-  }
-  
-  activarSlide = true;
-
-  mostrar();
-}
-
-// ---------------- MOSTRAR ----------------
-
-function mostrar() {
-  let contenedor = document.getElementById("jugadores");
-  let claseSlide = activarSlide ? "slide" : "";
-  activarSlide = false;
-
-  if (jugadores.length === 0) {
-    contenedor.innerHTML = "<p>No hay jugadores aún</p>";
-    return;
-  }
-
-  let encabezado = "<tr><th>Ronda</th>";
-  jugadores.forEach(j => {
-    encabezado += `<th>${j.nombre}</th>`;
-  });
-  encabezado += "</tr>";
-
-  let filas = "";
-
-  if (rondas.length === 0) {
-    filas = `<tr><td colspan="${jugadores.length + 1}">Sin rondas aún</td></tr>`;
-  } else {
-    rondas.forEach((r, index) => {
-      filas += `<tr><td>R${index + 1}</td>`;
-      r.forEach(p => {
-        filas += `<td>${p}</td>`;
-      });
-      filas += "</tr>";
-    });
-  }
-
-  let maxPuntos = Math.max(...jugadores.map(j => j.puntos));
-
-  let controles = jugadores.map((j, i) => {
-    let esGanador = j.puntos >= limite;
-    let esLider = j.puntos === maxPuntos && maxPuntos > 0;
-
-    return `
-      <div class="control ${esGanador ? 'ganador' : ''}">
-        ${esLider && !esGanador ? `<div>🥇 LÍDER</div>` : ''}
-        ${esGanador ? `<div>🏆 GANADOR</div>` : ''}
-
-        <input value="${j.nombre}" onchange="editarNombre(${i}, this.value)">
-        <p>${j.puntos} pts</p>
-
-        <input id="input${i}" type="number" placeholder="Puntos">
-
-        <button onclick="sumar(${i})">➕</button>
-        <button onclick="restar(${i})">➖</button>
-      </div>
-    `;
-  }).join("");
-
-  let historialHTML = "<h3>Historial</h3>";
-  
-  let stats = {};
-
-historial.forEach(p => {
-  if (!stats[p.ganador]) {
-    stats[p.ganador] = 0;
-  }
-  stats[p.ganador]++;
-});
-
-let ranking = Object.entries(stats)
-  .sort((a, b) => b[1] - a[1]);
-
-let statsHTML = "<h3>🏆 Ranking</h3>";
-
-if (ranking.length === 0) {
-  statsHTML += "<p>No hay datos</p>";
-} else {
-  ranking.forEach((item, index) => {
-    let medal = "";
-    if (index === 0) medal = "🥇";
-    else if (index === 1) medal = "🥈";
-    else if (index === 2) medal = "🥉";
-
-    statsHTML += `<p>${medal} ${item[0]} - ${item[1]} wins</p>`;
-  });
-}
-
-  if (historial.length === 0) {
-    historialHTML += "<p>No hay partidas aún</p>";
-  } else {
-    historial.forEach(p => {
-      historialHTML += `
-        <div style="background:#222; margin:5px; padding:5px; border-radius:8px;">
-          🏆 ${p.ganador}<br>
-          ${p.fecha}
-        </div>
-      `;
-    });
-  }
-
-  
-contenedor.innerHTML = `
-    <h3>Meta: ${limite}</h3>
-
-    <div class="app">
-    <div class="controles">
-        ${controles}
-    </div>
-
-	<div id="tablaRondas" class="${claseSlide}">
-	<table>
-	
-    ${encabezado}
-    ${filas}
-	</table>
-	</div>
-
-      ${historialHTML}
-	  ${statsHTML}
-    </div>
-  `;
-}
-
-// ---------------- NUEVA PARTIDA ----------------
-
-function nuevaPartida() {
-  localStorage.removeItem("jugadores");
-  localStorage.removeItem("rondas");
-  localStorage.removeItem("limite");
-  localStorage.removeItem("juegoTerminado");
-
-  jugadores = [];
-  rondas = [];
-  limite = 0;
-  juegoTerminado = false;
-
-  document.getElementById("ganador").innerText = "";
-
-  mostrar();
-}
-
-// ---------------- BORRAR HISTORIAL ----------------
-
-function borrarHistorial() {
-  if (!confirm("¿Borrar todo el historial?")) return;
-
-  historial = [];
-  localStorage.removeItem("historial");
-
-  mostrar();
-}
-
-// ---------------- INICIO ----------------
-
-cargarDatos();
+document.addEventListener('DOMContentLoaded', () => App.Engine.init());
 </script>
-
 </body>
 </html>
