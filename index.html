@@ -2,18 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Domino Score Pro v2.3</title>
+    <title>Domino Score Pro v2.4</title>
 	<link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<link rel="manifest" href="manifest.json">
-
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-	<meta name="apple-mobile-web-app-title" content="Domino Score">
-	<link rel="apple-touch-icon" href="icon-192.png">
     
     <style>
         :root {
@@ -27,34 +21,24 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 15px; }
         .container { max-width: 900px; margin: 0 auto; }
         
-        /* Acciones y Configuración */
         .actions-bar { background: #222; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         
-        /* Tarjetas de Jugadores */
         .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
-        .player-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); transition: transform 0.2s; }
-        .player-card.is-winner { background: var(--accent-green); border-color: #4ade80; transform: scale(1.02); }
+        .player-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; }
+        .player-card.is-winner { background: var(--accent-green); border-color: #4ade80; }
         
-        /* Inputs Optimizados para Móvil */
-        input { 
-            padding: 10px; 
-            border-radius: 8px; 
-            border: 1px solid var(--border-color); 
-            background: #2a2a2a; 
-            color: white; 
-            text-align: center; 
-            font-size: 16px; /* Evita zoom automático en iOS */
-        }
+        input { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; font-size: 16px; }
         
-        button { cursor: pointer; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; }
+        button { cursor: pointer; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
         .btn-primary { background: var(--accent-blue); }
         .btn-success { background: var(--accent-green); }
         .btn-warning { background: #856404; }
         .btn-danger { background: #721c24; }
-        
-        /* Tabla */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; border-radius: 8px; overflow: hidden; }
-        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: center; }
+        .btn-export { background: #553c9a; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: center; }
         
         .flash { animation: flashEffect 0.4s ease-out; }
         @keyframes flashEffect { 0% { background-color: #555; } 100% { background-color: var(--bg-card); } }
@@ -82,7 +66,12 @@
         <button class="btn-primary" onclick="App.UI.addPlayer()">Añadir</button>
         <button class="btn-warning" onclick="App.Engine.softReset()">Reiniciar Puntos</button>
         <button class="btn-danger" onclick="App.Engine.hardReset()">Todo Nuevo</button>
-        <button onclick="App.Engine.exportData()">Backup</button>
+        
+        <div style="display: flex; gap: 5px;">
+            <button class="btn-export" onclick="App.Engine.exportData()">📤 Guardar</button>
+            <button class="btn-export" onclick="document.getElementById('import-file').click()">📥 Cargar</button>
+            <input type="file" id="import-file" style="display:none" accept=".json" onchange="App.Engine.importData(event)">
+        </div>
     </nav>
 
     <div id="game-board"></div>
@@ -98,7 +87,7 @@ const App = {
 
     Engine: {
         init() {
-            const saved = localStorage.getItem('domino_v2_3');
+            const saved = localStorage.getItem('domino_v2_4');
             if (saved) {
                 const data = JSON.parse(saved);
                 App.State.config = data.config || { players: [], limit: 0 };
@@ -108,7 +97,7 @@ const App = {
         },
 
         save() {
-            localStorage.setItem('domino_v2_3', JSON.stringify({
+            localStorage.setItem('domino_v2_4', JSON.stringify({
                 config: App.State.config,
                 game: App.State.game
             }));
@@ -120,7 +109,6 @@ const App = {
             const points = parseInt(el.value, 10);
 
             if (App.State.game.isGameOver || isNaN(points) || points === 0) return;
-            if (Math.abs(points) > 500) return alert("Puntaje inválido.");
             
             const newRound = new Array(App.State.config.players.length).fill(0);
             newRound[playerIdx] = points;
@@ -135,9 +123,44 @@ const App = {
                 });
             }
             
-            el.value = ""; // Limpiar input tras añadir
+            el.value = "";
             this.save();
             App.UI.render(playerIdx);
+        },
+
+        exportData() {
+            const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `domino_backup_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.config && imported.game) {
+                        App.State.config = imported.config;
+                        App.State.game = imported.game;
+                        App.State.history = imported.history || [];
+                        this.save();
+                        App.UI.render();
+                        alert("Respaldo cargado con éxito.");
+                    } else {
+                        throw new Error("Formato inválido");
+                    }
+                } catch (err) {
+                    alert("Error: El archivo no es un respaldo válido de Domino Score.");
+                }
+            };
+            reader.readAsText(file);
         },
 
         softReset() {
@@ -154,14 +177,6 @@ const App = {
             App.State.game = { rounds: [], isGameOver: false };
             this.save();
             App.UI.render();
-        },
-
-        exportData() {
-            const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `domino_backup.json`;
-            a.click();
         },
 
         getRanking() {
@@ -213,7 +228,7 @@ const App = {
                         </div>
                         <div style="font-weight:bold; margin:5px 0">${escape(p.name)}</div>
                         <div style="font-size:2rem; margin:5px 0">${p.score}</div>
-                        <input type="number" id="pts-${i}" inputmode="numeric" pattern="[0-9]*" placeholder="Pts" style="width:80%; margin-bottom:10px">
+                        <input type="number" id="pts-${i}" inputmode="numeric" pattern="[0-9]*" placeholder="0" style="width:80%; margin-bottom:10px">
                         <div style="display:flex; gap:5px; justify-content:center">
                             <button class="btn-success" onclick="App.Engine.addPoints(${i}, 'pts-${i}')">➕</button>
                             <button onclick="App.Engine.addPoints(${i}, 'pts-${i}', true)">➖</button>
