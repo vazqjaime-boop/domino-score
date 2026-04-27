@@ -7,7 +7,7 @@
   "theme_color": "#111111",
   "icons": [
     {
-      "src": "doble6.png",
+      "src": "ficha.png",
       "sizes": "192x192",
       "type": "image/png"
     }
