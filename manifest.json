@@ -1,15 +1,20 @@
 {
-  "name": "Domino Score",
-  "short_name": "Domino",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#111111",
+  "short_name": "DominoScore",
+  "name": "Domino Score Pro",
   "icons": [
     {
       "src": "ficha.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "ficha.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#111111",
+  "background_color": "#111111"
 }
