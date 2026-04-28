@@ -3,12 +3,12 @@
   "name": "Domino Score Pro",
   "icons": [
     {
-      "src": "ficha.png",
+      "src": "icono.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "ficha.png",
+      "src": "icono.png",
       "type": "image/png",
       "sizes": "512x512"
     }
