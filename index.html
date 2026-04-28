@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Domino Score Pro</title>
-	<link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#111111">
     <meta name="mobile-web-app-capable" content="yes">
@@ -16,16 +16,26 @@
             --accent-green: #1f7a1f; --text-main: #eee; --border-color: #444;
             --danger: #721c24;
         }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background: var(--bg-dark); 
+            color: var(--text-main); 
+            text-align: center; 
+            margin: 0; 
+            padding: 10px; 
+            overflow-x: hidden; 
+        }
         .container { max-width: 900px; margin: 0 auto; }
         .actions-bar { background: #222; padding: 12px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333; }
-        .row { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
-        .row-secondary { flex-wrap: wrap; border-top: 1px solid #333; padding-top: 10px; justify-content: center; }
-        input { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; font-size: 16px; outline: none; }
+        .row { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; flex-wrap: wrap; }
+        input { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; font-size: 16px; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: var(--accent-blue); }
         #in-nombre { flex: 3; min-width: 0; text-align: left; padding-left: 12px; }
         #in-limite { flex: 1; max-width: 65px; padding: 10px 5px; }
         button { cursor: pointer; padding: 10px 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; justify-content: center; transition: 0.2s; }
         button:active { transform: scale(0.95); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { flex: 1.2; background: var(--accent-blue); white-space: nowrap; }
         .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 15px 0; }
         .player-card { background: var(--bg-card); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; }
@@ -33,11 +43,25 @@
         .editable-name { cursor: pointer; border-bottom: 1px dashed #666; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; font-size: 0.85rem; }
         th, td { border: 1px solid var(--border-color); padding: 8px; }
-        .flash { animation: flashEffect 0.5s ease-out; }
+        .flash { animation: flashEffect 0.3s ease-out; }
         @keyframes flashEffect { 0% { background-color: #444; } 100% { background-color: var(--bg-card); } }
         
-        /* Banner de Instalación */
-        #install-banner { display: none; background: var(--accent-blue); color: white; padding: 10px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; justify-content: space-between; align-items: center; }
+        #install-banner { 
+            display: none; 
+            background: var(--accent-blue); 
+            color: white; 
+            padding: 10px; 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 100; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        #import-file { display: none; }
+        .empty-state { opacity: 0.5; margin-top: 30px; }
+        .ranking { margin-top: 15px; font-size: 0.8rem; background: #222; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -61,13 +85,13 @@
             <input id="in-limite" type="number" inputmode="numeric" placeholder="Meta">
             <button class="btn-primary" onclick="App.UI.addPlayer()">Añadir</button>
         </div>
-        <div class="row row-secondary" style="gap: 5px;">
+        <div class="row" style="gap: 5px;">
             <button onclick="App.Engine.undoLastMove()">↩️ Undo</button>
             <button onclick="App.Engine.softReset()">🔄 Reset</button>
             <button style="background:var(--danger)" onclick="App.Engine.hardReset()">🗑️ Todo</button>
             <button onclick="App.Engine.exportData()">📤 Guardar</button>
             <button onclick="document.getElementById('import-file').click()">📥 Cargar</button>
-            <input type="file" id="import-file" style="display:none" accept=".json" onchange="App.Engine.importData(event)">
+            <input type="file" id="import-file" accept=".json" onchange="App.Engine.importData(event)">
         </div>
     </nav>
 
@@ -75,101 +99,170 @@
 </div>
 
 <script>
-// --- MOTOR DE LA APLICACIÓN ---
 const App = {
     State: { config: { players: [], limit: 0 }, game: { rounds: [], isGameOver: false }, history: [] },
+    Cache: { html: '', lastIdx: null },
     
     Engine: {
         init() {
             const saved = localStorage.getItem('domino_v4_0');
-            if (saved) App.State = JSON.parse(saved);
+            if (saved) try { App.State = JSON.parse(saved); } catch(e) { console.error('Parse error:', e); }
             App.UI.render();
             App.PWA.register();
         },
-        save() { localStorage.setItem('domino_v4_0', JSON.stringify(App.State)); },
+        save() { 
+            localStorage.setItem('domino_v4_0', JSON.stringify(App.State)); 
+        },
         addPoints(idx, id, isNeg) {
             const el = document.getElementById(id);
             let pts = parseInt(el.value, 10);
             if (isNaN(pts) || pts === 0) return;
             if (isNeg) pts = -Math.abs(pts);
+            
             const round = new Array(App.State.config.players.length).fill(0);
             round[idx] = pts;
             App.State.game.rounds.push(round);
             App.State.config.players[idx].score += pts;
+            
             if (!isNeg && App.State.config.players[idx].score >= App.State.config.limit) {
                 App.State.game.isGameOver = true;
-                App.State.history.unshift({ winner: App.State.config.players[idx].name, date: new Date().toLocaleString() });
+                App.State.history.unshift({ 
+                    winner: App.State.config.players[idx].name, 
+                    date: new Date().toLocaleString() 
+                });
             }
-            el.value = ""; this.save(); App.UI.render(idx);
+            
+            el.value = "";
+            this.save();
+            App.UI.render(idx);
         },
         undoLastMove() {
             if (App.State.game.rounds.length === 0) return;
             const last = App.State.game.rounds.pop();
             last.forEach((p, i) => App.State.config.players[i].score -= p);
             App.State.game.isGameOver = false;
-            this.save(); App.UI.render();
+            this.save();
+            App.UI.render();
         },
         editName(idx) {
             const n = prompt("Nombre:", App.State.config.players[idx].name);
-            if (n) { App.State.config.players[idx].name = n.trim(); this.save(); App.UI.render(); }
+            if (n) { 
+                App.State.config.players[idx].name = n.trim(); 
+                this.save(); 
+                App.UI.render(); 
+            }
         },
         exportData() {
             const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a"); a.href = url; a.download = `domino_backup.json`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `domino_backup.json`;
+            a.click();
+            URL.revokeObjectURL(url);
         },
         importData(e) {
-            const f = e.target.files[0]; if (!f) return;
+            const f = e.target.files[0];
+            if (!f) return;
             const r = new FileReader();
-            r.onload = (ev) => { try { App.State = JSON.parse(ev.target.result); this.save(); App.UI.render(); } catch(e){ alert("Error"); } };
+            r.onload = (ev) => { 
+                try { 
+                    App.State = JSON.parse(ev.target.result); 
+                    this.save(); 
+                    App.UI.render(); 
+                } catch(e) { 
+                    alert("Error al cargar archivo"); 
+                } 
+            };
             r.readAsText(f);
         },
-        softReset() { if(confirm("¿Reset?")) { App.State.config.players.forEach(p => p.score = 0); App.State.game = { rounds: [], isGameOver: false }; this.save(); App.UI.render(); } },
-        hardReset() { if(confirm("¿Borrar todo?")) { App.State = { config: { players: [], limit: 0 }, game: { rounds: [], isGameOver: false }, history: [] }; this.save(); App.UI.render(); } }
+        softReset() { 
+            if(confirm("¿Reset de puntuación?")) { 
+                App.State.config.players.forEach(p => p.score = 0); 
+                App.State.game = { rounds: [], isGameOver: false }; 
+                this.save(); 
+                App.UI.render(); 
+            } 
+        },
+        hardReset() { 
+            if(confirm("¿Borrar todo?")) { 
+                App.State = { config: { players: [], limit: 0 }, game: { rounds: [], isGameOver: false }, history: [] }; 
+                this.save(); 
+                App.UI.render(); 
+            } 
+        }
     },
 
     UI: {
         addPlayer() {
-            const n = document.getElementById('in-nombre'); const l = document.getElementById('in-limite');
-            if (!n.value) return;
+            const n = document.getElementById('in-nombre');
+            const l = document.getElementById('in-limite');
+            if (!n.value.trim()) return;
             if (App.State.config.limit === 0) App.State.config.limit = parseInt(l.value) || 100;
-            App.State.config.players.push({ name: n.value, score: 0 });
-            n.value = ""; App.Engine.save(); this.render();
+            App.State.config.players.push({ name: n.value.trim(), score: 0 });
+            n.value = "";
+            l.value = "";
+            App.Engine.save();
+            this.render();
+        },
+        esc(s) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+            return String(s).replace(/[&<>"']/g, m => map[m]);
         },
         render(lastIdx = null) {
             const board = document.getElementById('game-board');
             const { config, game, history } = App.State;
-            if (config.players.length === 0) { board.innerHTML = "<p style='opacity:0.5; margin-top:30px;'>Añade jugadores.</p>"; return; }
-            const esc = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+            
+            if (config.players.length === 0) {
+                board.innerHTML = '<p class="empty-state">Añade jugadores.</p>';
+                return;
+            }
+            
             const cards = config.players.map((p, i) => `
                 <div class="player-card ${p.score >= config.limit ? 'is-winner' : ''} ${lastIdx === i ? 'flash' : ''}">
-                    <span class="editable-name" onclick="App.Engine.editName(${i})">${esc(p.name)}</span>
+                    <span class="editable-name" onclick="App.Engine.editName(${i})">${this.esc(p.name)}</span>
                     <div style="font-size:2rem; margin:5px 0; font-weight:bold">${p.score}</div>
-                    <input type="number" id="pts-${i}" inputmode="numeric" placeholder="0" onclick="this.select()" style="width:75%; margin-bottom:10px">
-                    <div style="display:flex; gap:5px;">
+                    <input type="number" id="pts-${i}" inputmode="numeric" placeholder="0" onclick="this.select()">
+                    <div style="display:flex; gap:5px; margin-top:8px;">
                         <button style="background:var(--accent-green); flex:1" onclick="App.Engine.addPoints(${i}, 'pts-${i}', false)">➕</button>
                         <button style="flex:1" onclick="App.Engine.addPoints(${i}, 'pts-${i}', true)">➖</button>
                     </div>
                 </div>
             `).join('');
-            const stats = {}; history.forEach(h => stats[h.winner] = (stats[h.winner] || 0) + 1);
-            const ranking = Object.entries(stats).sort((a,b) => b[1]-a[1]);
-            board.innerHTML = `<h4 style="color:#888;">Meta: ${config.limit}</h4><div class="controles">${cards}</div>
-                <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>#</th>${config.players.map(p => `<th>${esc(p.name)}</th>`).join('')}</tr></thead>
-                <tbody>${game.rounds.map((r, ri) => `<tr><td style="color:#555">${ri+1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-                ${ranking.length > 0 ? `<div style="margin-top:15px; font-size:0.8rem; background:#222; padding:10px; border-radius:8px">RANKING: ${ranking.map(r => `${esc(r[0])}: ${r[1]}🏆`).join(' | ')}</div>` : ''}`;
+            
+            const stats = {};
+            history.forEach(h => stats[h.winner] = (stats[h.winner] || 0) + 1);
+            const ranking = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+            
+            const roundsHtml = game.rounds.length > 0 
+                ? game.rounds.map((r, ri) => `<tr><td style="color:#555">${ri + 1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>`).join('')
+                : '';
+            
+            const rankingHtml = ranking.length > 0 
+                ? `<div class="ranking">RANKING: ${ranking.map(r => `${this.esc(r[0])}: ${r[1]}🏆`).join(' | ')}</div>`
+                : '';
+            
+            board.innerHTML = `
+                <h4 style="color:#888;">Meta: ${config.limit}</h4>
+                <div class="controles">${cards}</div>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead><tr><th>#</th>${config.players.map(p => `<th>${this.esc(p.name)}</th>`).join('')}</tr></thead>
+                        <tbody>${roundsHtml}</tbody>
+                    </table>
+                </div>
+                ${rankingHtml}
+            `;
         }
     },
 
-    // LÓGICA DE PWA (Invisible y potente)
     PWA: {
         deferredPrompt: null,
         register() {
             if ('serviceWorker' in navigator) {
-                const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });`;
+                const swCode = `self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));`;
                 const blob = new Blob([swCode], { type: 'text/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(blob));
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
             }
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
@@ -187,6 +280,7 @@ const App = {
         }
     }
 };
+
 document.addEventListener('DOMContentLoaded', () => App.Engine.init());
 </script>
 </body>
