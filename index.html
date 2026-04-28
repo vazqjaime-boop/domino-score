@@ -2,9 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Domino Score Pro v3.1</title>
-	<link rel="manifest" href="manifest.json">
+    <title>Domino Score Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111111">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/LST6fXg/domino-icon.png">
+    
     <style>
         :root {
             --bg-dark: #111; --bg-card: #1e1e1e; --accent-blue: #0066cc;
@@ -13,83 +17,52 @@
         }
         body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg-dark); color: var(--text-main); text-align: center; margin: 0; padding: 10px; overflow-x: hidden; }
         .container { max-width: 900px; margin: 0 auto; }
-        
-        /* Barra de Acciones con Alineación Senior */
         .actions-bar { background: #222; padding: 12px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #333; }
-        
-        .row { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 6px; 
-            width: 100%;
-        }
-
-        .row-secondary { 
-            flex-wrap: wrap; 
-            border-top: 1px solid #333; 
-            padding-top: 10px; 
-            justify-content: center;
-        }
-
-        /* Optimizando campos para Móvil */
+        .row { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+        .row-secondary { flex-wrap: wrap; border-top: 1px solid #333; padding-top: 10px; justify-content: center; }
         input { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: #2a2a2a; color: white; text-align: center; font-size: 16px; outline: none; }
-        
-        #in-nombre { 
-            flex: 3; 
-            min-width: 0; 
-            text-align: left; 
-            padding-left: 12px; 
-        }
-
-        #in-limite { 
-            flex: 1; 
-            max-width: 65px; 
-            padding: 10px 5px; 
-        }
-
+        #in-nombre { flex: 3; min-width: 0; text-align: left; padding-left: 12px; }
+        #in-limite { flex: 1; max-width: 65px; padding: 10px 5px; }
         button { cursor: pointer; padding: 10px 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; justify-content: center; transition: 0.2s; }
-        button:active { transform: scale(0.95); opacity: 0.8; }
-        
-        .btn-primary { 
-            flex: 1.2; 
-            background: var(--accent-blue); 
-            white-space: nowrap;
-        }
-
-        /* Estética de Juego */
+        button:active { transform: scale(0.95); }
+        .btn-primary { flex: 1.2; background: var(--accent-blue); white-space: nowrap; }
         .controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 15px 0; }
         .player-card { background: var(--bg-card); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; }
-        .is-winner { background: var(--accent-green) !important; border-color: #4ade80 !important; box-shadow: 0 0 15px rgba(74, 222, 128, 0.2); }
-        .editable-name { cursor: pointer; border-bottom: 1px dashed #666; font-weight: bold; padding: 2px 5px; margin-bottom: 5px; display: inline-block; }
-
+        .is-winner { background: var(--accent-green) !important; border-color: #4ade80 !important; }
+        .editable-name { cursor: pointer; border-bottom: 1px dashed #666; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1a1a1a; font-size: 0.85rem; }
         th, td { border: 1px solid var(--border-color); padding: 8px; }
-        
         .flash { animation: flashEffect 0.5s ease-out; }
         @keyframes flashEffect { 0% { background-color: #444; } 100% { background-color: var(--bg-card); } }
+        
+        /* Banner de Instalación */
+        #install-banner { display: none; background: var(--accent-blue); color: white; padding: 10px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
+
+<div id="install-banner">
+    <span>📲 Instalar Domino Pro en tu inicio</span>
+    <button onclick="App.PWA.install()">Instalar</button>
+</div>
 
 <div class="container">
     <header style="margin-bottom: 15px;">
         <h2 style="display:flex; align-items:center; justify-content:center; gap:8px; font-size: 1.1rem;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="12" cy="7" r="1" fill="#4ade80"/><circle cx="12" cy="17" r="1" fill="#4ade80"/></svg>
-            DOMINO SCORE PRO v3.1
+            DOMINO SCORE PRO
         </h2>
     </header>
     
     <nav class="actions-bar">
         <div class="row">
             <input id="in-nombre" type="text" placeholder="Jugador" autocomplete="off">
-            <input id="in-limite" type="number" inputmode="numeric" pattern="[0-9]*" placeholder="Meta">
+            <input id="in-limite" type="number" inputmode="numeric" placeholder="Meta">
             <button class="btn-primary" onclick="App.UI.addPlayer()">Añadir</button>
         </div>
-        
         <div class="row row-secondary" style="gap: 5px;">
-            <button onclick="App.Engine.undoLastMove()">↩️ Deshacer</button>
-            <button onclick="App.Engine.softReset()">🔄 Reset Pts</button>
+            <button onclick="App.Engine.undoLastMove()">↩️ Undo</button>
+            <button onclick="App.Engine.softReset()">🔄 Reset</button>
             <button style="background:var(--danger)" onclick="App.Engine.hardReset()">🗑️ Todo</button>
             <button onclick="App.Engine.exportData()">📤 Guardar</button>
             <button onclick="document.getElementById('import-file').click()">📥 Cargar</button>
@@ -101,168 +74,115 @@
 </div>
 
 <script>
+// --- MOTOR DE LA APLICACIÓN ---
 const App = {
-    State: {
-        config: { players: [], limit: 0 },
-        game: { rounds: [], isGameOver: false },
-        history: []
-    },
-
+    State: { config: { players: [], limit: 0 }, game: { rounds: [], isGameOver: false }, history: [] },
+    
     Engine: {
         init() {
-            const saved = localStorage.getItem('domino_v3_1');
+            const saved = localStorage.getItem('domino_v4_0');
             if (saved) App.State = JSON.parse(saved);
             App.UI.render();
+            App.PWA.register();
         },
-
-        save() {
-            localStorage.setItem('domino_v3_1', JSON.stringify(App.State));
-        },
-
-        addPoints(playerIdx, inputId, isNegative = false) {
-            const el = document.getElementById(inputId);
+        save() { localStorage.setItem('domino_v4_0', JSON.stringify(App.State)); },
+        addPoints(idx, id, isNeg) {
+            const el = document.getElementById(id);
             let pts = parseInt(el.value, 10);
-            
             if (isNaN(pts) || pts === 0) return;
-            if (Math.abs(pts) > 200 && !confirm(`¿Anotar ${pts} puntos?`)) return;
-
-            if (isNegative) pts = -Math.abs(pts);
-
+            if (isNeg) pts = -Math.abs(pts);
             const round = new Array(App.State.config.players.length).fill(0);
-            round[playerIdx] = pts;
+            round[idx] = pts;
             App.State.game.rounds.push(round);
-            App.State.config.players[playerIdx].score += pts;
-
-            if (!isNegative && App.State.config.players[playerIdx].score >= App.State.config.limit) {
+            App.State.config.players[idx].score += pts;
+            if (!isNeg && App.State.config.players[idx].score >= App.State.config.limit) {
                 App.State.game.isGameOver = true;
-                App.State.history.unshift({
-                    winner: App.State.config.players[playerIdx].name,
-                    date: new Date().toLocaleString()
-                });
+                App.State.history.unshift({ winner: App.State.config.players[idx].name, date: new Date().toLocaleString() });
             }
-            el.value = "";
-            this.save();
-            App.UI.render(playerIdx);
+            el.value = ""; this.save(); App.UI.render(idx);
         },
-
         undoLastMove() {
             if (App.State.game.rounds.length === 0) return;
-            const lastRound = App.State.game.rounds.pop();
-            lastRound.forEach((pts, i) => {
-                App.State.config.players[i].score -= pts;
-            });
-            if (App.State.game.isGameOver) {
-                App.State.game.isGameOver = false;
-                App.State.history.shift();
-            }
-            this.save();
-            App.UI.render();
+            const last = App.State.game.rounds.pop();
+            last.forEach((p, i) => App.State.config.players[i].score -= p);
+            App.State.game.isGameOver = false;
+            this.save(); App.UI.render();
         },
-
         editName(idx) {
-            const n = prompt("Editar nombre:", App.State.config.players[idx].name);
+            const n = prompt("Nombre:", App.State.config.players[idx].name);
             if (n) { App.State.config.players[idx].name = n.trim(); this.save(); App.UI.render(); }
         },
-
         exportData() {
             const blob = new Blob([JSON.stringify(App.State, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `domino_backup.json`;
-            document.body.appendChild(a); a.click();
-            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+            const a = document.createElement("a"); a.href = url; a.download = `domino_backup.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         },
-
         importData(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const data = JSON.parse(ev.target.result);
-                    if (data.config) { App.State = data; this.save(); App.UI.render(); }
-                } catch (err) { alert("Archivo inválido"); }
-            };
-            reader.readAsText(file);
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = (ev) => { try { App.State = JSON.parse(ev.target.result); this.save(); App.UI.render(); } catch(e){ alert("Error"); } };
+            r.readAsText(f);
         },
-
-        softReset() {
-            if (!confirm("¿Reiniciar scores?")) return;
-            App.State.config.players.forEach(p => p.score = 0);
-            App.State.game = { rounds: [], isGameOver: false };
-            this.save(); App.UI.render();
-        },
-
-        hardReset() {
-            if (!confirm("¿Borrar todo?")) return;
-            App.State.config = { players: [], limit: 0 };
-            App.State.game = { rounds: [], isGameOver: false };
-            App.State.history = [];
-            this.save(); App.UI.render();
-        }
+        softReset() { if(confirm("¿Reset?")) { App.State.config.players.forEach(p => p.score = 0); App.State.game = { rounds: [], isGameOver: false }; this.save(); App.UI.render(); } },
+        hardReset() { if(confirm("¿Borrar todo?")) { App.State = { config: { players: [], limit: 0 }, game: { rounds: [], isGameOver: false }, history: [] }; this.save(); App.UI.render(); } }
     },
 
     UI: {
         addPlayer() {
-            const nIn = document.getElementById('in-nombre');
-            const lIn = document.getElementById('in-limite');
-            const name = nIn.value.trim();
-            const limit = parseInt(lIn.value, 10);
-
-            if (!name) return;
-            if (App.State.config.players.length >= 4) return alert("Máximo 4");
-            if (App.State.config.limit === 0) {
-                if (isNaN(limit) || limit < 50) return alert("Meta mínima: 50");
-                App.State.config.limit = limit;
-            }
-
-            App.State.config.players.push({ name, score: 0 });
-            nIn.value = "";
-            App.Engine.save();
-            this.render();
+            const n = document.getElementById('in-nombre'); const l = document.getElementById('in-limite');
+            if (!n.value) return;
+            if (App.State.config.limit === 0) App.State.config.limit = parseInt(l.value) || 100;
+            App.State.config.players.push({ name: n.value, score: 0 });
+            n.value = ""; App.Engine.save(); this.render();
         },
-
         render(lastIdx = null) {
             const board = document.getElementById('game-board');
             const { config, game, history } = App.State;
-
-            if (config.players.length === 0) {
-                board.innerHTML = "<p style='opacity:0.5; margin-top:30px;'>Inicia añadiendo jugadores.</p>";
-                return;
-            }
-
+            if (config.players.length === 0) { board.innerHTML = "<p style='opacity:0.5; margin-top:30px;'>Añade jugadores.</p>"; return; }
             const esc = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-            
             const cards = config.players.map((p, i) => `
                 <div class="player-card ${p.score >= config.limit ? 'is-winner' : ''} ${lastIdx === i ? 'flash' : ''}">
                     <span class="editable-name" onclick="App.Engine.editName(${i})">${esc(p.name)}</span>
                     <div style="font-size:2rem; margin:5px 0; font-weight:bold">${p.score}</div>
-                    <input type="number" id="pts-${i}" inputmode="numeric" pattern="[0-9]*" placeholder="0" 
-                           onclick="this.select()" autocomplete="off" enterkeyhint="done" style="width:75%; margin-bottom:10px">
-                    <div style="display:flex; gap:5px; justify-content:center">
+                    <input type="number" id="pts-${i}" inputmode="numeric" placeholder="0" onclick="this.select()" style="width:75%; margin-bottom:10px">
+                    <div style="display:flex; gap:5px;">
                         <button style="background:var(--accent-green); flex:1" onclick="App.Engine.addPoints(${i}, 'pts-${i}', false)">➕</button>
                         <button style="flex:1" onclick="App.Engine.addPoints(${i}, 'pts-${i}', true)">➖</button>
                     </div>
                 </div>
             `).join('');
-
-            const stats = {};
-            history.forEach(h => stats[h.winner] = (stats[h.winner] || 0) + 1);
+            const stats = {}; history.forEach(h => stats[h.winner] = (stats[h.winner] || 0) + 1);
             const ranking = Object.entries(stats).sort((a,b) => b[1]-a[1]);
+            board.innerHTML = `<h4 style="color:#888;">Meta: ${config.limit}</h4><div class="controles">${cards}</div>
+                <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>#</th>${config.players.map(p => `<th>${esc(p.name)}</th>`).join('')}</tr></thead>
+                <tbody>${game.rounds.map((r, ri) => `<tr><td style="color:#555">${ri+1}</td>${r.map(pts => `<td>${pts || '-'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+                ${ranking.length > 0 ? `<div style="margin-top:15px; font-size:0.8rem; background:#222; padding:10px; border-radius:8px">RANKING: ${ranking.map(r => `${esc(r[0])}: ${r[1]}🏆`).join(' | ')}</div>` : ''}`;
+        }
+    },
 
-            board.innerHTML = `
-                <h4 style="margin:10px 0; color:#888;">Meta: ${config.limit}</h4>
-                <div class="controles">${cards}</div>
-                <div style="overflow-x:auto; border: 1px solid #333; border-radius:8px;">
-                    <table>
-                        <thead><tr><th>#</th>${config.players.map(p => `<th>${esc(p.name)}</th>`).join('')}</tr></thead>
-                        <tbody>${game.rounds.map((r, ri) => `<tr><td style="color:#555">${ri+1}</td>${r.map(pts => `<td style="color:${pts<0?'#ff4444':'#eee'}">${pts || '-'}</td>`).join('')}</tr>`).join('')}</tbody>
-                    </table>
-                </div>
-                ${ranking.length > 0 ? `<div style="margin-top:15px; font-size:0.8rem; background:#222; padding:10px; border-radius:8px">
-                    <strong>RANKING:</strong> ${ranking.map(r => `${esc(r[0])}: ${r[1]}🏆`).join(' | ')}
-                </div>` : ''}
-            `;
+    // LÓGICA DE PWA (Invisible y potente)
+    PWA: {
+        deferredPrompt: null,
+        register() {
+            if ('serviceWorker' in navigator) {
+                const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });`;
+                const blob = new Blob([swCode], { type: 'text/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob));
+            }
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                document.getElementById('install-banner').style.display = 'flex';
+            });
+        },
+        async install() {
+            if (this.deferredPrompt) {
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
+                this.deferredPrompt = null;
+            }
         }
     }
 };
